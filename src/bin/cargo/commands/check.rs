@@ -49,7 +49,7 @@ pub fn exec(gctx: &mut GlobalContext, args: &ArgMatches) -> CliResult {
         args.get_one::<String>("profile").map(String::as_str),
         Some("test")
     );
-    let mode = CompileMode::Check { test };
+    let mode = CompileMode::Check { test, doc: false, typeck_docs: false };
     let compile_opts =
         args.compile_options(gctx, mode, Some(&ws), ProfileChecking::LegacyTestOnly)?;
 

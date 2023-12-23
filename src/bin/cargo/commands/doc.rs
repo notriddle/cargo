@@ -50,6 +50,7 @@ pub fn exec(gctx: &mut GlobalContext, args: &ArgMatches) -> CliResult {
     let mode = CompileMode::Doc {
         deps: !args.flag("no-deps"),
         json: false,
+        typeck_docs: gctx.cli_unstable().typeck_docs,
     };
     let mut compile_opts = args.compile_options(gctx, mode, Some(&ws), ProfileChecking::Custom)?;
     compile_opts.rustdoc_document_private_items = args.flag("document-private-items");

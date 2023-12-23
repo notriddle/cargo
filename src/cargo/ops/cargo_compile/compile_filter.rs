@@ -219,11 +219,11 @@ impl CompileFilter {
     pub fn need_dev_deps(&self, mode: CompileMode) -> bool {
         match mode {
             CompileMode::Test | CompileMode::Doctest | CompileMode::Bench => true,
-            CompileMode::Check { test: true } => true,
+            CompileMode::Check { test: true, .. } => true,
             CompileMode::Build
             | CompileMode::Doc { .. }
             | CompileMode::Docscrape
-            | CompileMode::Check { test: false } => match *self {
+            | CompileMode::Check { test: false, .. } => match *self {
                 CompileFilter::Default { .. } => false,
                 CompileFilter::Only {
                     ref examples,

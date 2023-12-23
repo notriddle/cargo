@@ -66,6 +66,7 @@ pub fn exec(gctx: &mut GlobalContext, args: &ArgMatches) -> CliResult {
         CompileMode::Doc {
             deps: false,
             json: matches!(output_format, OutputFormat::Json),
+            typeck_docs: gctx.cli_unstable().typeck_docs,
         },
         Some(&ws),
         ProfileChecking::Custom,

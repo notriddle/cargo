@@ -784,6 +784,7 @@ unstable_cli_options!(
     skip_rustdoc_fingerprint: bool,
     target_applies_to_host: bool = ("Enable the `target-applies-to-host` key in the .cargo/config.toml file"),
     trim_paths: bool = ("Enable the `trim-paths` option in profiles"),
+    typeck_docs: bool = ("Require function bodies to type check in rustdoc"),
     unstable_options: bool = ("Allow the usage of unstable options"),
 );
 
@@ -1164,6 +1165,7 @@ impl CliUnstable {
             "rustdoc-scrape-examples" => self.rustdoc_scrape_examples = parse_empty(k, v)?,
             "separate-nightlies" => self.separate_nightlies = parse_empty(k, v)?,
             "skip-rustdoc-fingerprint" => self.skip_rustdoc_fingerprint = parse_empty(k, v)?,
+            "typeck-docs" => self.typeck_docs = parse_empty(k, v)?,
             "script" => self.script = parse_empty(k, v)?,
             "target-applies-to-host" => self.target_applies_to_host = parse_empty(k, v)?,
             "unstable-options" => self.unstable_options = parse_empty(k, v)?,

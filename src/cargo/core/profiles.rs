@@ -1018,6 +1018,9 @@ pub struct UnitFor {
     /// How Cargo processes the `panic` setting or profiles.
     panic_setting: PanicSetting,
 
+    /// Compile with `-Ztypeck-docs`.
+    doc_meta: bool,
+
     /// The compile kind of the root unit for which artifact dependencies are built.
     /// This is required particularly for the `target = "target"` setting of artifact
     /// dependencies which mean to inherit the `--target` specified on the command-line.
@@ -1062,6 +1065,7 @@ impl UnitFor {
         UnitFor {
             host: false,
             host_features: false,
+            doc_meta: false,
             panic_setting: PanicSetting::ReadProfile,
             root_compile_kind,
             artifact_target_for_features: None,
@@ -1078,6 +1082,7 @@ impl UnitFor {
         UnitFor {
             host: true,
             host_features,
+            doc_meta: false,
             // Force build scripts to always use `panic=unwind` for now to
             // maximally share dependencies with procedural macros.
             panic_setting: PanicSetting::AlwaysUnwind,
@@ -1094,6 +1099,7 @@ impl UnitFor {
             // plugins, so for now plugins don't split features. Since plugins
             // are mostly deprecated, just leave this as false.
             host_features: false,
+            doc_meta: false,
             // Force plugins to use `panic=abort` so panics in the compiler do
             // not abort the process but instead end with a reasonable error
             // message that involves catching the panic in the compiler.
@@ -1113,6 +1119,7 @@ impl UnitFor {
         UnitFor {
             host: false,
             host_features: false,
+            doc_meta: false,
             // We're testing out an unstable feature (`-Zpanic-abort-tests`)
             // which inherits the panic setting from the dev/release profile
             // (basically avoid recompiles) but historical defaults required
@@ -1162,6 +1169,8 @@ impl UnitFor {
         // why the parent is checked here, and not the dependency).
         let host_features =
             self.host_features || parent.target.is_custom_build() || dep_target.proc_macro();
+        // This is where doc metadata gets separated from regular compilation.
+        let doc_meta = self.doc_meta || parent.mode.is_doc() || parent.mode.is_check_doc();
         // Build scripts and proc macros, and all of their dependencies are
         // AlwaysUnwind.
         let panic_setting = if dep_for_host {
@@ -1172,6 +1181,7 @@ impl UnitFor {
         UnitFor {
             host: self.host || dep_for_host,
             host_features,
+            doc_meta,
             panic_setting,
             root_compile_kind,
             artifact_target_for_features: self.artifact_target_for_features,
@@ -1182,6 +1192,7 @@ impl UnitFor {
         UnitFor {
             host: true,
             host_features: self.host_features,
+            doc_meta: false,
             // Force build scripts to always use `panic=unwind` for now to
             // maximally share dependencies with procedural macros.
             panic_setting: PanicSetting::AlwaysUnwind,
@@ -1205,6 +1216,11 @@ impl UnitFor {
             CompileKind::Host => None,
             CompileKind::Target(triple) => Some(triple),
         });
+        self
+    }
+
+    pub(crate) fn with_doc_meta(mut self) -> UnitFor {
+        self.doc_meta = true;
         self
     }
 

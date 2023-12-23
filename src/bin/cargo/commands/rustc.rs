@@ -66,7 +66,7 @@ pub fn exec(gctx: &mut GlobalContext, args: &ArgMatches) -> CliResult {
     let mode = match args.get_one::<String>("profile").map(String::as_str) {
         Some("test") => CompileMode::Test,
         Some("bench") => CompileMode::Bench,
-        Some("check") => CompileMode::Check { test: false },
+        Some("check") => CompileMode::Check { test: false, doc: false, typeck_docs: false },
         _ => CompileMode::Build,
     };
     let mut compile_opts = args.compile_options_for_single_package(

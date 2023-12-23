@@ -268,7 +268,7 @@ fn compute_deps(
         return compute_deps_custom_build(unit, unit_for, state);
     } else if unit.mode.is_doc() {
         // Note: this does not include doc test.
-        return compute_deps_doc(unit, state, unit_for);
+        return compute_deps_doc(unit, state, unit_for.with_doc_meta());
     }
 
     let mut ret = Vec::new();
@@ -796,7 +796,11 @@ fn check_or_build_mode(mode: CompileMode, target: &Target) -> CompileMode {
             } else {
                 // Regular dependencies should not be checked with --test.
                 // Regular dependencies of doc targets should emit rmeta only.
-                CompileMode::Check { test: false }
+                CompileMode::Check {
+                    test: false,
+                    doc: mode.is_doc() || mode.is_check_doc(),
+                    typeck_docs: mode.is_doc_with_typeck() || mode.is_check_doc_typeck(),
+                }
             }
         }
         _ => CompileMode::Build,

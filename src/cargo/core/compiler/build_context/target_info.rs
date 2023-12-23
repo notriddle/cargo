@@ -142,6 +142,18 @@ impl FileType {
             should_replace_hyphens: true,
         }
     }
+
+    /// Creates a new instance representing a `.doc.rmeta` file.
+    pub fn new_doc_rmeta() -> FileType {
+        // Note that even binaries use the `lib` prefix.
+        FileType {
+            flavor: FileFlavor::Rmeta,
+            crate_type: None,
+            suffix: ".doc.rmeta".to_string(),
+            prefix: "lib".to_string(),
+            should_replace_hyphens: true,
+        }
+    }
 }
 
 impl TargetInfo {
@@ -540,6 +552,7 @@ impl TargetInfo {
                     None => Ok((Vec::new(), vec![CrateType::Bin])),
                 }
             }
+            CompileMode::Check { doc: true, .. } => Ok((vec![FileType::new_doc_rmeta()], Vec::new())),
             CompileMode::Check { .. } => Ok((vec![FileType::new_rmeta()], Vec::new())),
             CompileMode::Doc { .. }
             | CompileMode::Doctest

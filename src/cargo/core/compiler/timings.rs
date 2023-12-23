@@ -166,8 +166,10 @@ impl<'gctx> Timings<'gctx> {
         match unit.mode {
             CompileMode::Test => target.push_str(" (test)"),
             CompileMode::Build => {}
-            CompileMode::Check { test: true } => target.push_str(" (check-test)"),
-            CompileMode::Check { test: false } => target.push_str(" (check)"),
+            CompileMode::Check { test: true, doc: false, .. } => target.push_str(" (check-test)"),
+            CompileMode::Check { test: false, doc: false, .. } => target.push_str(" (check)"),
+            CompileMode::Check { test: true, doc: true, .. } => target.push_str(" (check-doc-test)"),
+            CompileMode::Check { test: false, doc: true, .. } => target.push_str(" (check-doc)"),
             CompileMode::Bench => target.push_str(" (bench)"),
             CompileMode::Doc { .. } => target.push_str(" (doc)"),
             CompileMode::Doctest => target.push_str(" (doc test)"),

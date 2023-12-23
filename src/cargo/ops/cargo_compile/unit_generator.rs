@@ -398,7 +398,7 @@ impl<'a> UnitGenerator<'a, '_> {
                 };
                 let test_mode = match self.mode {
                     CompileMode::Build => CompileMode::Test,
-                    CompileMode::Check { .. } => CompileMode::Check { test: true },
+                    CompileMode::Check { doc, typeck_docs, .. } => CompileMode::Check { test: true, doc, typeck_docs },
                     _ => self.mode,
                 };
                 // If `--benches` was specified, add all targets that would be
@@ -409,7 +409,7 @@ impl<'a> UnitGenerator<'a, '_> {
                 };
                 let bench_mode = match self.mode {
                     CompileMode::Build => CompileMode::Bench,
-                    CompileMode::Check { .. } => CompileMode::Check { test: true },
+                    CompileMode::Check { doc, typeck_docs, .. } => CompileMode::Check { test: true, doc, typeck_docs },
                     _ => self.mode,
                 };
 

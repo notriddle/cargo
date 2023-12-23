@@ -39,9 +39,9 @@ impl CompileKind {
         // if we are a `Target` kind and then we start compiling for a target
         // that needs to be on the host we lift ourselves up to `Host`.
         match self {
-            CompileKind::Host => CompileKind::Host,
             CompileKind::Target(_) if target.for_host() => CompileKind::Host,
             CompileKind::Target(n) => CompileKind::Target(n),
+            _ => self,
         }
     }
 

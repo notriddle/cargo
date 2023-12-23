@@ -898,7 +898,7 @@ impl<'gctx> DrainState<'gctx> {
         match unit.mode {
             CompileMode::Doc { .. } => format!("{}(doc)", pkg_name),
             CompileMode::RunCustomBuild => format!("{}(build)", pkg_name),
-            CompileMode::Test | CompileMode::Check { test: true } => match unit.target.kind() {
+            CompileMode::Test | CompileMode::Check { test: true, .. } => match unit.target.kind() {
                 TargetKind::Lib(_) => format!("{}(test)", target_name),
                 TargetKind::CustomBuild => panic!("cannot test build script"),
                 TargetKind::Bin => format!("{}(bin test)", target_name),

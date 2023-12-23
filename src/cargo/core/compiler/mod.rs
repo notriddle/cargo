@@ -191,7 +191,7 @@ fn compile<'gctx>(
         let force = exec.force_rebuild(unit) || force_rebuild;
         let mut job = fingerprint::prepare_target(build_runner, unit, force)?;
         job.before(if job.freshness().is_dirty() {
-            let work = if unit.mode.is_doc() || unit.mode.is_doc_scrape() {
+            let work = if unit.mode.is_doc() || unit.mode.is_doc_scrape() || unit.mode.is_check_doc() {
                 rustdoc(build_runner, unit)?
             } else {
                 rustc(build_runner, unit, exec)?
@@ -742,8 +742,14 @@ fn prepare_rustdoc(build_runner: &BuildRunner<'_, '_>, unit: &Unit) -> CargoResu
         rustdoc.args(args);
     }
 
-    let metadata = build_runner.metadata_for_doc_units[unit];
-    rustdoc.arg("-C").arg(format!("metadata={}", metadata));
+    if unit.mode.is_check_doc() {
+        let metadata = build_runner.files().metadata(unit);
+        rustdoc.arg("-C").arg(format!("metadata={metadata}"));
+        rustdoc.arg("-C").arg(format!("extra-filename=-{metadata}"));
+    } else {
+        let metadata = build_runner.metadata_for_doc_units[unit];
+        rustdoc.arg("-C").arg(format!("metadata={metadata}"));
+    }
 
     if unit.mode.is_doc_scrape() {
         debug_assert!(build_runner.bcx.scrape_units.contains(unit));
@@ -771,16 +777,27 @@ fn prepare_rustdoc(build_runner: &BuildRunner<'_, '_>, unit: &Unit) -> CargoResu
         }
     }
 
-    if should_include_scrape_units(build_runner.bcx, unit) {
+    if should_include_scrape_units(build_runner.bcx, unit) || should_typeck_docs(unit) || unit.mode.is_check_doc() {
         rustdoc.arg("-Zunstable-options");
     }
 
+    if unit.mode.is_check_doc() {
+        rustdoc.arg("-Ztypeck-docs");
+        rustdoc.arg("--output-format=metadata");
+        // Nasty hack workaround.
+        if !unit.mode.is_check_doc_typeck() || unit.target.name() == "quote" {
+            rustdoc.arg("-Zdisable-cfg-doc");
+        }
+        rustdoc.args(bcx.rustflags_args(unit));
+    } else {
+        if should_typeck_docs(unit) {
+            rustdoc.arg("-Ztypeck-docs");
+        }
+        rustdoc.args(bcx.rustdocflags_args(unit));
+    }
+
     build_deps_args(&mut rustdoc, build_runner, unit)?;
-    rustdoc::add_root_urls(build_runner, unit, &mut rustdoc)?;
-
     rustdoc::add_output_format(build_runner, unit, &mut rustdoc)?;
-
-    rustdoc.args(bcx.rustdocflags_args(unit));
 
     if !crate_version_flag_already_present(&rustdoc) {
         append_crate_version_flag(unit, &mut rustdoc);
@@ -1933,4 +1950,13 @@ fn scrape_output_path(build_runner: &BuildRunner<'_, '_>, unit: &Unit) -> CargoR
     build_runner
         .outputs(unit)
         .map(|outputs| outputs[0].path.clone())
+}
+
+/// Checks if typechecking docs is turned on.
+fn should_typeck_docs(unit: &Unit) -> bool {
+    if let CompileMode::Doc { typeck_docs, .. } = unit.mode {
+        typeck_docs
+    } else {
+        false
+    }
 }

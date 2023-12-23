@@ -169,7 +169,9 @@ pub enum CompileMode {
     /// Building a target with `rustc` to emit `rmeta` metadata only. If
     /// `test` is true, then it is also compiled with `--test` to check it like
     /// a test.
-    Check { test: bool },
+    /// If `doc` is true, then it is compiled with `-Ztypeck-docs` to check it like
+    /// rustdoc. If `typeck_docs` is true, then it also gets compiled as `--cfg doc`.
+    Check { test: bool, doc: bool, typeck_docs: bool },
     /// Used to indicate benchmarks should be built. This is not used in
     /// `Unit`, because it is essentially the same as `Test` (indicating
     /// `--test` should be passed to rustc) and by using `Test` instead it
@@ -179,7 +181,8 @@ pub enum CompileMode {
 
     /// If `deps` is true, then it will also document all dependencies.
     /// if `json` is true, the documentation output is in json format.
-    Doc { deps: bool, json: bool },
+    /// If `typeck_docs` is true, then it passes `-Ztypeck-docs` to rustdoc.
+    Doc { deps: bool, json: bool, typeck_docs: bool },
     /// A target that will be tested with `rustdoc`.
     Doctest,
     /// An example or library that will be scraped for function calls by `rustdoc`.
@@ -217,6 +220,12 @@ impl CompileMode {
     pub fn is_doc(self) -> bool {
         matches!(self, CompileMode::Doc { .. })
     }
+    pub fn is_doc_with_typeck(self) -> bool {
+        matches!(self, CompileMode::Doc { typeck_docs: true, .. })
+    }
+    pub fn is_doc_without_typeck(self) -> bool {
+        matches!(self, CompileMode::Doc { typeck_docs: false, .. })
+    }
 
     /// Returns `true` if this a doc test.
     pub fn is_doc_test(self) -> bool {
@@ -235,7 +244,7 @@ impl CompileMode {
             self,
             CompileMode::Test
                 | CompileMode::Bench
-                | CompileMode::Check { test: true }
+                | CompileMode::Check { test: true, .. }
                 | CompileMode::Doctest
         )
     }
@@ -244,7 +253,23 @@ impl CompileMode {
     pub fn is_rustc_test(self) -> bool {
         matches!(
             self,
-            CompileMode::Test | CompileMode::Bench | CompileMode::Check { test: true }
+            CompileMode::Test | CompileMode::Bench | CompileMode::Check { test: true, .. }
+        )
+    }
+
+    /// Returns `true` if this is something that passes `--cfg doc` to rustc.
+    pub fn is_check_doc(self) -> bool {
+        matches!(
+            self,
+            CompileMode::Check { doc: true, .. }
+        )
+    }
+
+    /// Returns `true` if this is something that passes `--cfg doc` to rustc.
+    pub fn is_check_doc_typeck(self) -> bool {
+        matches!(
+            self,
+            CompileMode::Check { typeck_docs: true, .. }
         )
     }
 
